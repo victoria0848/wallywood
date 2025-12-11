@@ -1,0 +1,88 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int        @id @default(autoincrement())
+  firstname String?
+  lastname  String?
+  email     String     @unique
+  password  String
+  role      String
+  isActive  Boolean    @default(true)
+
+  cartlines   Cartline[]
+  userRatings UserRating[]
+}
+
+model Poster {
+  id        Int        @id @default(autoincrement())
+  name        String
+  slug        String
+  description String?
+  image       String?
+  width       Int?
+  height      Int?
+  price       Float?
+  stock       Int?
+  createdAt   DateTime?
+  updatedAt   DateTime?
+
+  cartlines   Cartline[]
+  userRatings UserRating[]
+  genres      GenrePosterRel[]
+}
+
+model Genre {
+  id        Int        @id @default(autoincrement())
+  title     String
+  slug      String
+  createdAt DateTime?
+  updatedAt DateTime?
+
+  posters GenrePosterRel[]
+}
+
+model GenrePosterRel {
+  genreId  Int
+  posterId Int
+
+  genre  Genre  @relation(fields: [genreId], references: [id])
+  poster Poster @relation(fields: [posterId], references: [id])
+
+  @@id([genreId, posterId])
+  @@map("genreposterrel")
+}
+
+model Cartline {
+  id        Int        @id @default(autoincrement())
+  userId    Int
+  posterId  Int
+  quantity  Int
+  createdAt DateTime @default(now())
+
+  user   User   @relation(fields: [userId], references: [id])
+  poster Poster @relation(fields: [posterId], references: [id])
+}
+
+model UserRating {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  posterId  Int
+  numStars  Int
+  createdAt DateTime @default(now())
+
+  user   User   @relation(fields: [userId], references: [id])
+  poster Poster @relation(fields: [posterId], references: [id])
+}
